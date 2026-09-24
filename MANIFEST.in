@@ -1,0 +1,10 @@
+include launch_coldmd.sh
+include CHANGELOG.md
+include VALIDATION.md
+include environment.yml
+include requirements-*.txt
+include stage_sequence.yaml
+include stage_sequence_pilot.yaml
+include CS_relaxed_NBO_BO.cif
+recursive-include examples *.yaml
+recursive-include docs *.md

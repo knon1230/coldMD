@@ -1,0 +1,190 @@
+# Legacy v1 compatibility example. New studies should start from the
+# stage_explicit_* v2 examples in this directory.
+config_version: 1
+
+input:
+  cif_path: structure.cif
+  cif_frame: 0
+  supercell: [1, 1, 1]
+  expected_atom_count: 400
+  expected_formula: null
+  reject_partial_occupancy: true
+
+calculator:
+  kind: mace
+  # Convenient for testing. A production/restartable run should instead set a
+  # local model_path, its model_sha256, foundation_model: null, and
+  # allow_download: false.
+  foundation_model: medium-mpa-0
+  kwargs: {}
+  model_path: null
+  model_sha256: null
+  device: cpu
+  dtype: float64
+  allow_download: true
+  required_properties: [energy, forces, stress]
+
+protocol:
+  control_mode: stage_sequence
+  temperature_K: 300.0
+  timestep_fs: 1.0
+  random_seed: 20260901
+  remove_center_of_mass_momentum: true
+  initialize_velocities: true
+
+  thermostat:
+    # Fixed-cell NVT uses the same Nose–Hoover thermostat family as the NPT
+    # stages below. The NPT barostat parameters remain independently configured.
+    kind: nose_hoover_chain
+    tau_fs: 100.0
+    chain_length: 3
+    substeps: 2
+
+  barostat:
+    kind: isotropic_mtk
+    thermostat_tau_fs: 100.0
+    barostat_tau_fs: 1000.0
+    thermostat_chain_length: 3
+    barostat_chain_length: 3
+    thermostat_substeps: 2
+    barostat_substeps: 2
+
+  # Stages execute exactly in this written order. Each NVT fixes the complete
+  # cell left by the preceding NPT; it does not require a volume field.
+  stages:
+    - kind: npt
+      name: load_0GPa_npt
+      branch: cold_compression
+      target_pressure_GPa: 0.0
+      duration_ps: 6.0
+      sampling_window_ps: 1.0
+    - kind: nvt
+      name: load_0GPa_nvt
+      branch: cold_compression
+      duration_ps: 1.0
+      sampling_window_ps: 1.0
+
+    - kind: npt
+      name: load_2.5GPa_npt
+      branch: cold_compression
+      target_pressure_GPa: 2.5
+      duration_ps: 6.0
+      sampling_window_ps: 1.0
+    - kind: nvt
+      name: load_2.5GPa_nvt
+      branch: cold_compression
+      duration_ps: 1.0
+      sampling_window_ps: 1.0
+
+    - kind: npt
+      name: load_5GPa_npt
+      branch: cold_compression
+      target_pressure_GPa: 5.0
+      duration_ps: 6.0
+      sampling_window_ps: 1.0
+    - kind: nvt
+      name: load_5GPa_nvt
+      branch: cold_compression
+      duration_ps: 1.0
+      sampling_window_ps: 1.0
+
+    - kind: npt
+      name: load_7.5GPa_npt
+      branch: cold_compression
+      target_pressure_GPa: 7.5
+      duration_ps: 6.0
+      sampling_window_ps: 1.0
+    - kind: nvt
+      name: load_7.5GPa_nvt
+      branch: cold_compression
+      duration_ps: 1.0
+      sampling_window_ps: 1.0
+
+    - kind: npt
+      name: load_10GPa_npt
+      branch: cold_compression
+      target_pressure_GPa: 10.0
+      duration_ps: 6.0
+      sampling_window_ps: 1.0
+    - kind: nvt
+      name: load_10GPa_nvt
+      branch: cold_compression
+      duration_ps: 1.0
+      sampling_window_ps: 1.0
+
+    # The 10 GPa state is already sampled above, so unloading begins at 7.5 GPa.
+    - kind: npt
+      name: unload_7.5GPa_npt
+      branch: decompression
+      target_pressure_GPa: 7.5
+      duration_ps: 6.0
+      sampling_window_ps: 1.0
+    - kind: nvt
+      name: unload_7.5GPa_nvt
+      branch: decompression
+      duration_ps: 1.0
+      sampling_window_ps: 1.0
+
+    - kind: npt
+      name: unload_5GPa_npt
+      branch: decompression
+      target_pressure_GPa: 5.0
+      duration_ps: 6.0
+      sampling_window_ps: 1.0
+    - kind: nvt
+      name: unload_5GPa_nvt
+      branch: decompression
+      duration_ps: 1.0
+      sampling_window_ps: 1.0
+
+    - kind: npt
+      name: unload_2.5GPa_npt
+      branch: decompression
+      target_pressure_GPa: 2.5
+      duration_ps: 6.0
+      sampling_window_ps: 1.0
+    - kind: nvt
+      name: unload_2.5GPa_nvt
+      branch: decompression
+      duration_ps: 1.0
+      sampling_window_ps: 1.0
+
+    - kind: npt
+      name: unload_0GPa_npt
+      branch: decompression
+      target_pressure_GPa: 0.0
+      duration_ps: 6.0
+      sampling_window_ps: 1.0
+    - kind: nvt
+      name: unload_0GPa_nvt
+      branch: decompression
+      duration_ps: 1.0
+      sampling_window_ps: 1.0
+
+output:
+  directory: coldmd-stage-sequence-run
+  trajectory_filename: trajectory.traj
+  thermo_filename: thermo.csv
+  log_filename: coldmd.log
+  thermo_interval_steps: 10
+  trajectory_interval_steps: 100
+  checkpoint_interval_steps: 10000
+  write_forces: true
+  write_stress: true
+  write_momenta: true
+  write_stage_structures: true
+
+safety:
+  min_temperature_K: 1.0
+  max_temperature_K: 1500.0
+  max_abs_pressure_GPa: 200.0
+  max_force_eV_A: 200.0
+  min_distance_A: 0.5
+  min_volume_ratio: 0.5
+  max_volume_ratio: 1.5
+  max_abs_log_volume_strain_per_step: 0.001
+  max_cell_condition_number: 10000.0
+  max_deviatoric_stress_GPa: 100.0
+  abort_on_nonfinite: true
+  checkpoint_on_abort: true
+  maximum_consecutive_violations: 1

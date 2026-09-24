@@ -1,0 +1,80 @@
+config_version: 2
+
+input:
+  cif_path: CS_relaxed_NBO_BO.cif
+  cif_frame: 0
+  supercell: [1, 1, 1]
+  expected_atom_count: 260
+  expected_formula: Ca2Si3O8
+  reject_partial_occupancy: true
+
+calculator:
+  kind: mace
+  foundation_model: null
+  model_path: /data/Python_MLMD_DATA/models/mace/mace-mpa-0-medium.model
+  model_sha256: 75428afe3a1d7d8062e19bcaabd5c433623cabf308242ec9fb493e38604fb638
+  device: cpu
+  dtype: float64
+  allow_download: false
+  required_properties: [energy, forces, stress]
+
+protocol:
+  temperature_K: 300.0
+  timestep_fs: 1.0
+  random_seed: 20260901
+  remove_center_of_mass_momentum: true
+  initialize_velocities: true
+  thermostat:
+    kind: nose_hoover_chain
+    tau_fs: 100.0
+    chain_length: 3
+    substeps: 2
+  barostat:
+    kind: isotropic_mtk
+    thermostat_tau_fs: 100.0
+    barostat_tau_fs: 1000.0
+    thermostat_chain_length: 3
+    barostat_chain_length: 3
+    thermostat_substeps: 2
+    barostat_substeps: 2
+
+  # Each pressure hold supplies a statistically representative snapshot to the
+  # following stage: the observed volume nearest its tail-window mean is used.
+  stages:
+    - {kind: npt_hold, name: load_0GPa_npt, branch: compression, purpose: equilibration, target_pressure_GPa: 0.0, duration_ps: 0.5, sampling_window_ps: 0.5}
+    - {kind: nvt_hold, name: load_0GPa_nvt, branch: compression, purpose: sampling, duration_ps: 0.1, sampling_window_ps: 0.1}
+    - {kind: npt_hold, name: load_5GPa_npt, branch: compression, purpose: equilibration, target_pressure_GPa: 5, duration_ps: 0.5, sampling_window_ps: 0.5}
+    - {kind: nvt_hold, name: load_5GPa_nvt, branch: compression, purpose: sampling, duration_ps: 0.1, sampling_window_ps: 0.1}
+    - {kind: npt_hold, name: load_10GPa_npt, branch: compression, purpose: equilibration, target_pressure_GPa: 10, duration_ps: 0.5, sampling_window_ps: 0.5}
+    - {kind: nvt_hold, name: load_10GPa_nvt, branch: compression, purpose: sampling, duration_ps: 0.1, sampling_window_ps: 0.1}
+    - {kind: npt_hold, name: load_15GPa_npt, branch: compression, purpose: equilibration, target_pressure_GPa: 15, duration_ps: 0.5, sampling_window_ps: 0.5}
+    - {kind: nvt_hold, name: load_15GPa_nvt, branch: compression, purpose: sampling, duration_ps: 0.1, sampling_window_ps: 0.1}
+
+output:
+  directory: coldmd-v211-run
+  trajectory_filename: trajectory.traj
+  thermo_filename: thermo.csv
+  log_filename: coldmd.log
+  trajectory_interval_steps: 100
+  thermo_interval_steps: 5
+  msd_interval_steps: 10
+  checkpoint_interval_steps: 10000
+  write_forces: true
+  write_stress: true
+  write_momenta: true
+  write_stage_structures: true
+
+safety:
+  min_temperature_K: 1.0
+  max_temperature_K: 1500.0
+  max_abs_pressure_GPa: 200.0
+  max_force_eV_A: 200.0
+  min_distance_A: 0.5
+  min_volume_ratio: 0.5
+  max_volume_ratio: 1.5
+  max_abs_log_volume_strain_per_step: 0.002
+  max_cell_condition_number: 10000.0
+  max_deviatoric_stress_GPa: 100.0
+  abort_on_nonfinite: true
+  checkpoint_on_abort: true
+  maximum_consecutive_violations: 1

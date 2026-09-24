@@ -1,0 +1,31 @@
+# v2 prescribed-volume path.  This is a driven, rate-dependent protocol, not
+# an equilibrium P(V) path; use NVT holds to sample fixed-cell structure/MSD.
+config_version: 2
+input:
+  cif_path: structure.cif
+  expected_atom_count: 400
+  expected_formula: null
+calculator:
+  kind: mace
+  foundation_model: medium-mpa-0
+  model_path: null
+  model_sha256: null
+  device: auto
+  dtype: float64
+  allow_download: true
+  required_properties: [energy, forces, stress]
+protocol:
+  temperature_K: 300.0
+  timestep_fs: 0.5
+  initialize_velocities: true
+  thermostat: {kind: bussi, tau_fs: 100.0}
+  barostat: {kind: isotropic_mtk, thermostat_tau_fs: 100.0, barostat_tau_fs: 1000.0}
+  stages:
+    - {kind: nvt_hold, name: initial_fixed, branch: reference, purpose: equilibration, duration_ps: 30.0, sampling_window_ps: 10.0}
+    - {kind: volume_ramp, name: compress_to_0.7V, branch: compression, purpose: transition, target_volume_ratio: 0.7, schedule: log_smoothstep, duration_ps: 150.0, sampling_window_ps: 10.0}
+    - {kind: nvt_hold, name: high_density_fixed, branch: compression, purpose: sampling, duration_ps: 100.0, sampling_window_ps: 80.0}
+    - {kind: volume_ramp, name: decompress_to_reference, branch: decompression, purpose: transition, target_volume_ratio: 1.4285714285714286, schedule: log_smoothstep, duration_ps: 200.0, sampling_window_ps: 10.0}
+    - {kind: nvt_hold, name: recovered_fixed, branch: recovery, purpose: sampling, duration_ps: 100.0, sampling_window_ps: 80.0}
+output:
+  directory: coldmd-volume-v2
+  msd_interval_steps: 10

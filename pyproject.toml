@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools==84.0.0", "wheel==0.48.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cold-compression-md"
+version = "2.1.1"
+description = "Stage-explicit ASE workflows for reproducible cold-compression and recovered-glass analysis"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  "ase==3.29.0",
+  "numpy==2.3.5",
+  "scipy==1.17.0",
+  "pydantic==2.13.4",
+  "PyYAML==6.0.3",
+  "matplotlib==3.10.8",
+  "packaging==26.3",
+]
+
+[project.optional-dependencies]
+mace = [
+  "torch==2.12.1",
+  "mace-torch==0.3.16",
+]
+test = [
+  "pytest==9.1.1",
+  "pytest-cov==7.0.0",
+]
+
+[project.scripts]
+coldmd = "coldmd.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]

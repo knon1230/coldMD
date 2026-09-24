@@ -1,0 +1,11 @@
+name: coldmd-v211
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip=25.0.1
+  - setuptools=84.0.0
+  - wheel=0.48.0
+  # Install the hardware-specific PyTorch wheel and then this project as
+  # described in README.md.  Keeping pip packages out of this file prevents
+  # conda from selecting an unintended CPU/GPU Torch build first.

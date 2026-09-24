@@ -1,0 +1,32 @@
+# v2 pressure-controlled, quasi-static path.  Substitute the three marked
+# input/calculator values before use.
+config_version: 2
+input:
+  cif_path: structure.cif
+  expected_atom_count: 400
+  expected_formula: null
+calculator:
+  kind: mace
+  foundation_model: medium-mpa-0
+  model_path: null
+  model_sha256: null
+  device: auto
+  dtype: float64
+  allow_download: true
+  required_properties: [energy, forces, stress]
+protocol:
+  temperature_K: 300.0
+  timestep_fs: 0.5
+  initialize_velocities: true
+  thermostat: {kind: nose_hoover_chain, tau_fs: 100.0, chain_length: 3, substeps: 2}
+  barostat: {kind: isotropic_mtk, thermostat_tau_fs: 100.0, barostat_tau_fs: 1000.0}
+  stages:
+    - {kind: npt_hold, name: load_0GPa, branch: compression, purpose: equilibration, target_pressure_GPa: 0.0, duration_ps: 20.0, sampling_window_ps: 10.0}
+    - {kind: nvt_hold, name: load_0GPa_fixed, branch: compression, purpose: sampling, duration_ps: 20.0, sampling_window_ps: 10.0}
+    - {kind: npt_hold, name: load_10GPa, branch: compression, purpose: equilibration, target_pressure_GPa: 10.0, duration_ps: 20.0, sampling_window_ps: 10.0}
+    - {kind: nvt_hold, name: load_10GPa_fixed, branch: compression, purpose: sampling, duration_ps: 20.0, sampling_window_ps: 10.0}
+    - {kind: npt_hold, name: recover_0GPa, branch: recovery, purpose: recovery, target_pressure_GPa: 0.0, duration_ps: 40.0, sampling_window_ps: 20.0}
+    - {kind: nvt_hold, name: recovered_fixed, branch: recovery, purpose: sampling, duration_ps: 40.0, sampling_window_ps: 20.0}
+output:
+  directory: coldmd-pressure-v2
+  msd_interval_steps: 10
