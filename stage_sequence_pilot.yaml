@@ -51,7 +51,7 @@ protocol:
     - {kind: nvt_hold, name: load_15GPa_nvt, branch: compression, purpose: sampling, duration_ps: 0.1, sampling_window_ps: 0.1}
 
 output:
-  directory: coldmd-v211-run
+  directory: ../coldmd-runs/coldmd-v212-pilot-run
   trajectory_filename: trajectory.traj
   thermo_filename: thermo.csv
   log_filename: coldmd.log

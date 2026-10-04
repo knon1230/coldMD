@@ -1,7 +1,7 @@
 """Cold-compression molecular dynamics with Python-importable potentials."""
 
 # Packaging metadata declares the identical release value in ``pyproject.toml``.
-__version__ = "2.1.1"
+__version__ = "2.1.2"
 
 from .config import (  # noqa: E402
     ColdMDConfig,

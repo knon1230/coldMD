@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.1.2 — 2026-10-04
+
+- Adopted the Git repository as the release source. Runtime output and Python
+  build artifacts are ignored and removed from version tracking; the original
+  v2.1.1 run directory remains separate.
+- Moved launcher defaults and bundled YAML output directories to sibling data
+  directories, outside the repository. `RUN_BASE` and `LOG_DIR` overrides still
+  work as before.
+- Updated installation paths, environment/launcher version checks, and the
+  documented stage sequence to match the current repository. MD and analysis
+  algorithms are unchanged.
+
+### Compatibility notes
+
+- Existing v2.1.1 runs retain their original environment for strict resume.
+  Their canonical stage EXTXYZ can be used as a v2.1.2 fork source.
+
 ## 2.1.1 — 2026-09-20
 
 - Applied the existing sampling-window exclusion shading consistently to both

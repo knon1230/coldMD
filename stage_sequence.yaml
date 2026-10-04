@@ -65,7 +65,7 @@ protocol:
     - {kind: nvt_hold, name: unload_0GPa_nvt, branch: decompression, purpose: sampling, duration_ps: 11.0, sampling_window_ps: 10.0}
 
 output:
-  directory: coldmd-v211-run
+  directory: ../coldmd-runs/coldmd-v212-run
   trajectory_filename: trajectory.traj
   thermo_filename: thermo.csv
   log_filename: coldmd.log

@@ -1,4 +1,4 @@
-name: coldmd-v211
+name: coldmd-v212
 channels:
   - conda-forge
 dependencies:

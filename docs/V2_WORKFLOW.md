@@ -90,9 +90,9 @@ output prefix가 같은 checkpoint 경계를 따릅니다.
 ## Preflight and launcher
 
 ```bash
-bash launch_coldmd.sh check stage_sequence.yaml
-bash launch_coldmd.sh new stage_sequence.yaml production
-bash launch_coldmd.sh fork child.yaml /path/to/parent STATE.extxyz branch-b
+bash launch_coldmd.sh check stage_sequence_pilot.yaml
+bash launch_coldmd.sh new stage_sequence_pilot.yaml pilot
+bash launch_coldmd.sh fork stage_sequence.yaml /path/to/15GPa-parent STATE.extxyz branch-30gpa
 bash launch_coldmd.sh resume /path/to/run
 ```
 
@@ -101,7 +101,10 @@ smoke trajectory를 수행합니다. Fork preflight는 실제 source mechanics�
 integrator를 확인합니다. 어느 preflight도 wall time 또는 과학적 평형성을 추정하지
 않습니다.
 
-launcher는 `coldmd-v211` 환경과 정확한 ColdMD 2.1.1 설치를 기본으로 요구합니다.
+현재 `stage_sequence.yaml`은 15 GPa 부모 상태에서 시작하는 14-stage fork 경로입니다.
+새 CIF에서 시작할 때에는 초기 압력점을 포함한 YAML을 사용합니다. launcher는
+`coldmd-v212` 환경과 정확한 ColdMD 2.1.2 설치를 기본으로 요구하고, 결과와 로그를
+기본적으로 Git 저장소의 형제 디렉터리인 `../coldmd-runs/`, `../coldmd-logs/`에 둡니다.
 
 ## Analysis criteria
 

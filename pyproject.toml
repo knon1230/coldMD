@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cold-compression-md"
-version = "2.1.1"
+version = "2.1.2"
 description = "Stage-explicit ASE workflows for reproducible cold-compression and recovered-glass analysis"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"

@@ -1,13 +1,12 @@
-# Cold Compression MD v2.1.1
+# Cold Compression MD v2.1.2
 
 ColdMD는 ASE와 MACE 같은 DFT-trained potential을 이용해 등방 cold
 compression/decompression stage sequence를 실행하고 분석하는 프로젝트입니다.
-v2.1.1은 v2.1.0 기능을 유지하면서 MSD plot의 sampling-window 음영을 통일한
-별도 프로젝트이며, v2.1 계열의 가장 큰
-변경은 기존 run의 **원자 위치와 모멘텀을 함께** 물려받아 새 계산으로 갈라지는
-`fork`입니다.
+v2.1.2는 v2.1.1의 계산·분석 동작을 유지하며 Git 저장소를 단일 개발 위치로
+사용합니다. v2.1 계열에서는 기존 run의 **원자 위치와 모멘텀을 함께** 물려받아
+새 계산으로 갈라지는 `fork`를 지원합니다.
 
-## v2.1.1 핵심 기능
+## v2.1 계열 핵심 기능
 
 - `coldmd fork`: 부모 run의 `stage_structures/*.extxyz`에서 cell, PBC,
   positions, momenta를 상속하고 새 YAML로 독립 계산을 시작합니다.
@@ -25,22 +24,36 @@ v2.1.1은 v2.1.0 기능을 유지하면서 MSD plot의 sampling-window 음영을
   표시하며, 통계에서 제외한 앞 구간을 회색으로 표시합니다.
 - launcher는 `launch_coldmd.sh` 하나만 사용합니다.
 
-## 새 v2.1.1 환경 설치
+## Git 저장소와 계산 데이터
 
-기존 v2.0 환경의 PyTorch/MACE 구성을 그대로 활용하려면 새 환경으로 복제한 뒤, 그
-환경 안의 구버전 ColdMD만 제거하고 이 프로젝트를 설치하십시오.
+`coldMD/`가 소스, 테스트, 문서, 입력 CIF와 실행 설정 YAML의 관리 위치입니다.
+실험별 YAML은 별도 파일로 저장하고 함께 커밋하십시오. 완료된 run의
+`resolved-config.yaml`과 manifest는 해당 run의 실제 설정과 출처를 보존합니다.
+기존 `03-coldcomp_v211/`에는 v2.1.1 계산 결과가 남아 있습니다.
+
+launcher의 기본 실행 결과와 로그 경로는 저장소의 형제 디렉터리인
+`../coldmd-runs/`와 `../coldmd-logs/`입니다. 모델 파일도 저장소 밖에 두고 YAML에서
+경로와 SHA-256을 지정합니다. `.gitignore`는 실행 결과, lock, Python 설치·캐시
+파일을 제외합니다. 필요하면 `RUN_BASE`와 `LOG_DIR`로 출력 위치를 바꿀 수 있습니다.
+
+## 새 v2.1.2 환경 설치
+
+기존 v2.1.1 환경의 PyTorch/MACE 구성을 활용하려면 새 환경으로 복제한 뒤, 그
+환경 안의 구버전 ColdMD만 제거하고 Git 저장소에서 설치하십시오. 기존 환경은
+v2.1.1 run의 strict resume용으로 유지합니다.
 
 ```bash
-cd /data/Python_MLMD_DATA/LSK/03-coldcomp_v211
+cd /data/Python_MLMD_DATA/LSK/coldMD
 
-conda create -n coldmd-v211 --clone coldmd-v200
-conda activate coldmd-v211
+source /opt/miniforge3/etc/profile.d/conda.sh
+conda create -n coldmd-v212 --clone coldmd-v211
+conda activate coldmd-v212
 
 python -m pip uninstall -y cold-compression-md
 python -m pip install -e ".[mace,test]"
 python -m pip check
 coldmd --version
-# coldmd 2.1.1
+# coldmd 2.1.2
 ```
 
 새로 만드는 환경이라면 `requirements-cpu.txt`, `requirements-cu126.txt`, 또는
@@ -48,46 +61,48 @@ coldmd --version
 `python -m pip install -e ".[mace,test]"`를 실행합니다.
 
 launcher는 다른 버전이 실수로 실행되는 것을 막기 위해 활성 환경의
-`coldmd --version`이 정확히 `2.1.1`인지 확인합니다. 편의를 위한 alias 예시는 다음과
+`coldmd --version`이 정확히 `2.1.2`인지 확인합니다. 편의를 위한 alias 예시는 다음과
 같습니다. 필요하면 해당 줄을 `~/.bashrc`에 직접 추가하십시오.
 
 ```bash
-alias coldmd211='conda run --no-capture-output -n coldmd-v211 coldmd'
-alias launch-coldmd211='bash /data/Python_MLMD_DATA/LSK/03-coldcomp_v211/launch_coldmd.sh'
+alias coldmd212='conda run --no-capture-output -n coldmd-v212 coldmd'
+alias launch-coldmd212='bash /data/Python_MLMD_DATA/LSK/coldMD/launch_coldmd.sh'
 ```
 
 launcher가 직접 환경을 활성화하므로 보통은 다음 설정만으로 충분합니다.
 
 ```bash
 export CONDA_SH=/opt/miniforge3/etc/profile.d/conda.sh
-export COLDMD_ENV=coldmd-v211
+export COLDMD_ENV=coldmd-v212
 ```
 
 ## 빠른 시작
 
 ```bash
-cd /data/Python_MLMD_DATA/LSK/03-coldcomp_v211
+cd /data/Python_MLMD_DATA/LSK/coldMD
 
 # YAML/CIF/calculator 검증 + 100-step fixed-cell NVT smoke run
-bash launch_coldmd.sh check stage_sequence.yaml
+bash launch_coldmd.sh check stage_sequence_pilot.yaml
 
-# preflight 통과 후 새 production run
-bash launch_coldmd.sh new stage_sequence.yaml stage-sequence
+# preflight 통과 후 짧은 pilot run
+bash launch_coldmd.sh new stage_sequence_pilot.yaml pilot
 ```
 
 `check`는 production 계산을 시작하지 않습니다. `new`는 같은 preflight를 다시 통과한
 경우에만 `nohup` background 계산을 시작합니다.
 
-기본 `stage_sequence.yaml`은 300 K에서 다음 압력 순서를 사용합니다.
+현재 `stage_sequence.yaml`은 15 GPa 부모 상태에서 fork하도록 작성된 설정입니다.
+300 K에서 다음 압력 순서를 사용합니다.
 
 ```text
-compression:    0 → 5 → 15 → 30 → 50 → 75 → 100 GPa
-decompression:  100 → 75 → 50 → 30 → 15 → 5 → 0 GPa
+compression:    22.5 → 30 GPa
+decompression:  22.5 → 15 → 10 → 5 → 0 GPa
 ```
 
-각 압력점은 `npt_hold`와 `nvt_hold`의 쌍이며, 전체 26 stage입니다. 기본 stage 길이는
-11 ps, sampling window는 마지막 10 ps입니다. 처음 1 ps는 통계에서 제외하는
-과도응답 구간이지 pressure ramp가 아닙니다.
+각 압력점은 `npt_hold`와 `nvt_hold`의 쌍이며, 전체 14 stage입니다. 각 stage는
+11 ps, sampling window는 마지막 10 ps입니다. 처음 1 ps만 통계에서 제외하므로
+평형 도달 여부는 압력과 부피의 시간 추세로 별도로 확인해야 합니다. 새 CIF에서
+0 GPa부터 시작하는 계산에는 초기 stage를 포함한 별도 YAML을 사용하십시오.
 
 ## launcher 명령
 
@@ -101,11 +116,11 @@ decompression:  100 → 75 → 50 → 30 → 15 → 5 → 0 GPa
 주요 환경변수는 다음과 같습니다.
 
 ```bash
-export COLDMD_ENV=coldmd-v211
+export COLDMD_ENV=coldmd-v212
 export CPU_THREADS=24
 export DRYRUN_NVT_STEPS=100
-export RUN_BASE=/data/Python_MLMD_DATA/LSK/03-coldcomp_v211/coldmd-runs
-export LOG_DIR=/data/Python_MLMD_DATA/LSK/03-coldcomp_v211/coldmd-logs
+export RUN_BASE=/data/Python_MLMD_DATA/LSK/coldmd-runs
+export LOG_DIR=/data/Python_MLMD_DATA/LSK/coldmd-logs
 ```
 
 `new`와 `fork`는 기존 run directory를 덮어쓰지 않습니다. preflight 자료는
@@ -135,16 +150,16 @@ export LOG_DIR=/data/Python_MLMD_DATA/LSK/03-coldcomp_v211/coldmd-logs
 
 ```bash
 PARENT=/absolute/path/to/coldmd-runs/parent-run
-STATE=stage-013-load_100GPa_nvt-handoff-step-000000143000.extxyz
+STATE=stage-007-load_15GPa_nvt-handoff-step-000000088000.extxyz
 
 # 계산을 시작하지 않는 fork 전용 검증
-coldmd fork child_sequence.yaml \
+coldmd fork stage_sequence.yaml \
   --from-run "$PARENT" \
   --state "$STATE" \
   --check-only --json
 
 # 검증 + background child run
-bash launch_coldmd.sh fork child_sequence.yaml "$PARENT" "$STATE" unload-branch-b
+bash launch_coldmd.sh fork stage_sequence.yaml "$PARENT" "$STATE" branch-30gpa
 ```
 
 `--state`에는 절대경로 또는 `PARENT/stage_structures/` 바로 아래의 파일명을 사용할 수
@@ -167,9 +182,9 @@ CIF는 원자 모멘텀을 보존하지 않으므로 **fork 입력으로 사용�
 부모 step/time, source volume/temperature가 기록됩니다. 이 값들은 lineage일 뿐 child의
 step/time 기준으로 이어지지 않습니다.
 
-v2.0 run의 canonical stage EXTXYZ로 v2.1.1 child를 fork할 수 있습니다. 반면 strict
-`resume`은 source/runtime fingerprint를 대조하므로 v2.0 계산은 당시 v2.0 설치로
-resume해야 합니다.
+v2.0 또는 v2.1.1 run의 canonical stage EXTXYZ로 v2.1.2 child를 fork할 수 있습니다.
+반면 strict `resume`은 source/runtime fingerprint를 대조하므로 기존 계산은 당시
+버전의 설치로 resume해야 합니다.
 
 ### strict resume
 
@@ -210,7 +225,7 @@ coldmd analyze "$RUN_DIR" --all-stages
 coldmd analyze "$RUN_DIR" --force
 ```
 
-주요 v2.1.1 분석 기준은 다음과 같습니다.
+주요 v2.1 계열 분석 기준은 다음과 같습니다.
 
 - `pv_hysteresis_mean_sd.png`는 유한한 stage mean을 `stage_order` 순서로 연결합니다.
   compression/decompression/recovery는 선을 나누는 기준이 아니라 marker 색상입니다.
@@ -245,7 +260,7 @@ coldmd analyze "$RUN_DIR" --force
 
 | 파일/디렉터리 | 역할 |
 |---|---|
-| `stage_sequence.yaml` | 26-stage production 압축/감압 경로 |
+| `stage_sequence.yaml` | 15 GPa 부모 상태에서 이어지는 14-stage fork 경로 |
 | `stage_sequence_pilot.yaml` | 짧은 stage-transition 안정성 시험 |
 | `CS_relaxed_NBO_BO.cif` | 기본 260-atom 입력 identity template |
 | `launch_coldmd.sh` | check/new/fork/resume 단일 launcher |

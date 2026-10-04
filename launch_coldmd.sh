@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# ColdMD 2.1.1: validate, preflight, launch, fork, and strict-resume wrapper.
+# ColdMD 2.1.2: validate, preflight, launch, fork, and strict-resume wrapper.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${PROJECT_DIR:-${SCRIPT_DIR}}"
 CONFIG_FILE="${CONFIG_FILE:-}"
-RUN_BASE="${RUN_BASE:-${SCRIPT_DIR}/coldmd-runs}"
-LOG_DIR="${LOG_DIR:-${SCRIPT_DIR}/coldmd-logs}"
-COLDMD_ENV="${COLDMD_ENV:-coldmd-v211}"
+RUN_BASE="${RUN_BASE:-${SCRIPT_DIR}/../coldmd-runs}"
+LOG_DIR="${LOG_DIR:-${SCRIPT_DIR}/../coldmd-logs}"
+COLDMD_ENV="${COLDMD_ENV:-coldmd-v212}"
 CPU_THREADS="${CPU_THREADS:-${SLURM_CPUS_PER_TASK:-24}}"
 DRYRUN_NVT_STEPS="${DRYRUN_NVT_STEPS:-100}"
 STARTUP_CHECK_SECONDS="${STARTUP_CHECK_SECONDS:-1}"
-EXPECTED_COLDMD_VERSION="2.1.1"
+EXPECTED_COLDMD_VERSION="2.1.2"
 
 COLDMD_BIN=""
 PYTHON_BIN=""
@@ -36,11 +36,11 @@ Commands:
 
 Environment overrides:
   CONDA_SH             Path to conda.sh when conda is not discoverable.
-  COLDMD_ENV           Conda environment (default: coldmd-v211).
+  COLDMD_ENV           Conda environment (default: coldmd-v212).
   PROJECT_DIR          Installed project directory (default: this directory).
   CONFIG_FILE          Fallback config for check/new.
-  RUN_BASE             Parent directory for new and fork child runs.
-  LOG_DIR              Parent directory for preflight/terminal logs.
+  RUN_BASE             Parent directory for new and fork child runs (default: sibling coldmd-runs).
+  LOG_DIR              Parent directory for preflight/terminal logs (default: sibling coldmd-logs).
   CPU_THREADS          Thread count (default: SLURM_CPUS_PER_TASK or 24).
   DRYRUN_NVT_STEPS     Fresh-run smoke steps (default: 100).
   STARTUP_CHECK_SECONDS  Background-process startup check delay (default: 1).

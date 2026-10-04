@@ -75,7 +75,7 @@ class LauncherIntegrationTests(unittest.TestCase):
                     stream.write(json.dumps(args) + "\\n")
 
                 if args == ["--version"]:
-                    print("coldmd 2.1.1")
+                    print("coldmd 2.1.2")
                     raise SystemExit(0)
 
                 command = args[0] if args else ""
@@ -327,6 +327,44 @@ exec "$@"
         self.assertEqual(len(terminal_logs), 1)
         self.assertEqual(len(pid_files), 1)
         self.assertIn("preflight_directory=", terminal_logs[0].read_text(encoding="utf-8"))
+
+    def test_default_output_directories_are_siblings_of_checkout(self) -> None:
+        checkout = self.root / "checkout"
+        checkout.mkdir()
+        launcher = checkout / "launch_coldmd.sh"
+        shutil.copy2(LAUNCHER, launcher)
+        environment = self.environment.copy()
+        for name in ("PROJECT_DIR", "RUN_BASE", "LOG_DIR"):
+            environment.pop(name, None)
+
+        result = subprocess.run(
+            [
+                BASH,
+                shell_search_path(launcher),
+                "new",
+                shell_search_path(self.config),
+                "default-run",
+            ],
+            cwd=self.root,
+            env=environment,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            capture_output=True,
+            timeout=15,
+            check=False,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(list(checkout.glob("coldmd-runs")), [])
+        self.assertEqual(list(checkout.glob("coldmd-logs")), [])
+        run_dirs = list((self.root / "coldmd-runs").glob("default-run-*"))
+        self.assertEqual(len(run_dirs), 1)
+        self.assertTrue((run_dirs[0] / "fake-run-called").is_file())
+        self.assertEqual(
+            len(list((self.root / "coldmd-logs").glob("preflight-default-run-*"))),
+            1,
+        )
 
     def test_resume_rejects_foundation_alias_before_starting_coldmd(self) -> None:
         run_dir = self.root / "alias run"

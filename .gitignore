@@ -1,0 +1,15 @@
+# Python packaging and test artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage*
+htmlcov/
+build/
+dist/
+
+# Local MD runs, preflight logs, and output-directory locks
+coldmd-runs/
+coldmd-logs/
+coldmd-v*-run/
+*.coldmd.lock
