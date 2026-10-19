@@ -268,6 +268,15 @@ coldmd analyze "$RUN_DIR" --force
 | `tests/` | unit/integration/launcher/fork contracts |
 | `docs/V2_WORKFLOW.md` | stage, fork, 분석 기준의 보충 설명 |
 
+## Copilot 프로젝트 에이전트
+
+`.github/agents/coldmd-workflow-maintainer.agent.md`에는 ColdMD 사용법 안내와
+코드·환경·문서·Git 유지보수를 함께 맡는 프로젝트 전용 에이전트가 정의되어
+있습니다. Copilot에서 **ColdMD Workflow & Maintainer**를 선택해 시뮬레이션
+설정/분석이나 유지보수 작업을 요청할 수 있습니다. 이 에이전트는 production
+계산 실행과 Git commit/push를 명시적으로 요청하지 않은 한 시작하지 않도록
+설정되어 있습니다.
+
 ## 검증과 주의사항
 
 ```bash
